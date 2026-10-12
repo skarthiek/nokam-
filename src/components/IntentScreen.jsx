@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { ChevronRight, Target, Handshake, CornerUpRight, XCircle } from 'lucide-react';
+import { useNokam } from '../context/useNokam';
 
 const intents = [
   { id: 'continue', label: 'Continue', icon: ChevronRight, color: 'text-blue-400', border: 'border-blue-400/30', hover: 'hover:border-blue-400', bg: 'hover:bg-blue-400/10' },
@@ -10,6 +11,15 @@ const intents = [
 ];
 
 export default function IntentScreen({ onSelectIntent }) {
+  const { setIntent, fetchKeywords } = useNokam();
+
+  const handleSelect = (intentId) => {
+    setIntent(intentId);
+    // Prefetch contextual keywords tailored to this intent if not already loaded
+    fetchKeywords(intentId, false);
+    onSelectIntent(intentId);
+  };
+
   return (
     <motion.div 
       initial={{ opacity: 0 }}
@@ -52,28 +62,28 @@ export default function IntentScreen({ onSelectIntent }) {
         </motion.div>
 
         {/* Orbiting Intents */}
-        {intents.map((intent, index) => {
+        {intents.map((intentItem, index) => {
           // Calculate positions: Right, Bottom, Left, Top
           const angle = (index * 90) * (Math.PI / 180);
-          const radius = window.innerWidth < 768 ? 130 : 170; // responsive radius
+          const radius = typeof window !== 'undefined' && window.innerWidth < 768 ? 130 : 170;
           const x = Math.cos(angle) * radius;
           const y = Math.sin(angle) * radius;
 
-          const Icon = intent.icon;
+          const Icon = intentItem.icon;
 
           return (
             <motion.button
-              key={intent.id}
-              onClick={() => onSelectIntent(intent.id)}
+              key={intentItem.id}
+              onClick={() => handleSelect(intentItem.id)}
               initial={{ opacity: 0, scale: 0 }}
               animate={{ opacity: 1, x, y, scale: 1 }}
               transition={{ delay: index * 0.1 + 0.3, type: 'spring', stiffness: 200, damping: 20 }}
               whileHover={{ scale: 1.1, zIndex: 20 }}
               whileTap={{ scale: 0.95 }}
-              className={`absolute flex flex-col items-center justify-center w-28 h-28 md:w-32 md:h-32 rounded-full glass-panel cursor-pointer group ${intent.border} ${intent.hover} ${intent.bg} transition-colors duration-300`}
+              className={`absolute flex flex-col items-center justify-center w-28 h-28 md:w-32 md:h-32 rounded-full glass-panel cursor-pointer group ${intentItem.border} ${intentItem.hover} ${intentItem.bg} transition-colors duration-300`}
             >
-              <Icon className={`${intent.color} mb-2 opacity-80 group-hover:opacity-100 transition-opacity drop-shadow-md`} size={28} />
-              <span className="text-xs md:text-sm font-medium text-dark-text tracking-wide">{intent.label}</span>
+              <Icon className={`${intentItem.color} mb-2 opacity-80 group-hover:opacity-100 transition-opacity drop-shadow-md`} size={28} />
+              <span className="text-xs md:text-sm font-medium text-dark-text tracking-wide">{intentItem.label}</span>
             </motion.button>
           );
         })}
