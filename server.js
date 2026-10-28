@@ -1,8 +1,13 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -232,6 +237,14 @@ Return ONLY valid JSON:
       warning: err.message
     });
   }
+});
+
+// Serve static frontend from Vite production build
+app.use(express.static(path.join(__dirname, 'dist')));
+
+// Serve index.html for all client-side routes
+app.get('{*path}', (req, res) => {
+  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
 app.listen(port, () => {
